@@ -37,8 +37,11 @@ AC_CHECK_FUNCS([ \
 AC_FUNC_MALLOC
 AC_FUNC_STRTOD
 
+PKG_CHECK_MODULES(TESTS, [glib-2.0 >= 2.42 json-glib-1.0 >= 1.0.2])
+
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	tests/Makefile
 ])
 AC_OUTPUT
