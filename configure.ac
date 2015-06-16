@@ -42,6 +42,6 @@ PKG_CHECK_MODULES(TESTS, [glib-2.0 >= 2.42 json-glib-1.0 >= 1.0.2])
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
-	tests/Makefile
+	tools/Makefile
 ])
 AC_OUTPUT
