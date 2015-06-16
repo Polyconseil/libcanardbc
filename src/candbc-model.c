@@ -18,12 +18,7 @@
 #include <string.h>
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 
-#include <candbc-model.h>
-
-void trace(char *str)
-{
-  fprintf(stderr, str);
-}
+#include "candbc-model.h"
 
 /****************
  * DESTRUCTORS *

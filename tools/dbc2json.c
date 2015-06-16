@@ -1,5 +1,6 @@
 #include <stdlib.h>
-#include <glib.h>
+
+#include <glib/gprintf.h>
 #include <json-glib/json-glib.h>
 
 #include <candbc-model.h>
