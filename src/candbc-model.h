@@ -345,8 +345,8 @@ void valtable_free(valtable_t *valtable);
 void attribute_value_free(attribute_value_t *attribute_value);
 void message_free(message_t *message);
 void dbc_free(dbc_t *dbc);
-message_t *message_dup(message_t *orig);
 char *string_merge(char *in, char *app);
+
 dbc_t *dbc_read_file(char *filename);
 
 #ifdef __cplusplus
