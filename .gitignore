@@ -22,6 +22,7 @@
 /src/candbc-lexer.c
 /src/candbc-parser.c
 /src/candbc-parser.h
+/tools/dbc2json
 /ylwrap
 GPATH
 GRTAGS
