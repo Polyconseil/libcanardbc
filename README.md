@@ -38,4 +38,6 @@ DBC format
 
 The syntax of signals in DBC file is:
 
+```
 <object> <name> : <start bit>|<length>@<endianess ex. 1><signedness ex. + or -> (<scale>,<offset>) <range, ex. 0|360> "<unit>" <nodes>
+```
