@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include <glib/gprintf.h>
 #include <json-glib/json-glib.h>
@@ -6,8 +7,14 @@
 #include <candbc-model.h>
 #include <candbc-reader.h>
 
-int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list)
+static int total_signal_count = 0;
+static int total_signal_name_length = 0;
+static int total_signal_bit_length = 0;
+
+static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list)
 {
+    int signal_count = 0;
+
     json_builder_set_member_name(builder, "signals");
     json_builder_begin_object(builder);
 
@@ -16,6 +23,7 @@ int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list)
 
         /* Keys are the signal names */
         json_builder_set_member_name(builder, signal->name);
+        total_signal_name_length += strlen(signal->name);
 
         json_builder_begin_object(builder);
         json_builder_set_member_name(builder, "bitstart");
@@ -23,6 +31,7 @@ int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list)
 
         json_builder_set_member_name(builder, "length");
         json_builder_add_int_value(builder, signal->bit_len);
+        total_signal_bit_length += signal->bit_len;
 
         json_builder_set_member_name(builder, "scale");
         json_builder_add_double_value(builder, signal->scale);
@@ -40,11 +49,12 @@ int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list)
 
         json_builder_end_object(builder);
 
+        signal_count++;
         signal_list = signal_list->next;
     }
     json_builder_end_object(builder);
 
-    return 0;
+    return signal_count;
 }
 
 char* convert_attribute_value_to_string(attribute_value_t *attribute_value)
@@ -123,7 +133,7 @@ int extract_messages(JsonBuilder *builder, message_list_t *message_list)
         json_builder_add_int_value(builder, message->len);
 
         extract_message_attributes(builder, message->attribute_list);
-        extract_message_signals(builder, message->signal_list);
+        total_signal_count += extract_message_signals(builder, message->signal_list);
 
         json_builder_end_object(builder);
         message_list = message_list->next;
@@ -183,6 +193,9 @@ int main(int argc, char** argv) {
 
     dbc = dbc_read_file(argv[1]);
     write_dbc_to_file(dbc, argv[2]);
+    g_printf("Number of signals: %d\n", total_signal_count);
+    g_printf("Total length of signal names: %d\n", total_signal_name_length);
+    g_printf("Total length of signal bits: %d\n", total_signal_bit_length);
 
     return 0;
 }
