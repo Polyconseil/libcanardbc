@@ -31,3 +31,11 @@ Tools
 
 This project is provided with a tool to convert a DBC file to a JSON file called
 dbc2json. It's up to you to adapt it to your needs.
+
+
+DBC format
+----------
+
+The syntax of signals in DBC file is:
+
+<object> <name> : <start bit>|<length>@<endianess ex. 1><signedness ex. + or -> (<scale>,<offset>) <range, ex. 0|360> "<unit>" <nodes>
