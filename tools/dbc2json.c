@@ -185,12 +185,15 @@ int write_dbc_to_file(dbc_t *dbc, const char *filename)
 
 int main(int argc, char** argv) {
     dbc_t *dbc;
+    const char *charset;
+
+    g_get_charset(&charset);
+    g_print("Charset %s\n", charset);
 
     if (argc < 3) {
        g_print("Usage: %s <source.dbc> <dest.json>\n", argv[0]);
        return EXIT_FAILURE;
     }
-
     dbc = dbc_read_file(argv[1]);
     write_dbc_to_file(dbc, argv[2]);
     g_printf("Number of signals: %d\n", total_signal_count);
