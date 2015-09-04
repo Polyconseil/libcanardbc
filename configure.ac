@@ -56,3 +56,16 @@ AC_CONFIG_FILES([
 	tools/Makefile
 ])
 AC_OUTPUT
+AC_MSG_RESULT([
+        $PACKAGE $VERSION
+        =================
+
+        prefix:                 ${prefix}
+        sysconfdir:             ${sysconfdir}
+        libdir:                 ${libdir}
+        includedir:             ${includedir}
+
+        compiler:               ${CC}
+        cflags:                 ${CFLAGS}
+        ldflags:                ${LDFLAGS}
+])
