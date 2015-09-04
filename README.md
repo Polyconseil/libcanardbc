@@ -19,8 +19,14 @@ made on purpose by Andreas Heitmann and so this fork inherits of the license.
 Installation
 ------------
 
-You will only need to install automake, autoconf, libtool and a C compiler (gcc
-or clang) to compile the library.
+You will only to install:
+- automake
+- autoconf
+- libtool
+- flex
+- bison
+
+and a C compiler (gcc or clang) to compile the library.
 
 To install, just run the usual dance, `./configure && make install`. Run
 `./autogen.sh` first to generate the `configure` script if required.
