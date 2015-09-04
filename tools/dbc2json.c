@@ -185,10 +185,9 @@ static int write_dbc_to_file(dbc_t *dbc, const char *filename)
 
 int main(int argc, char** argv) {
     dbc_t *dbc;
-    const char *charset;
 
-    g_get_charset(&charset);
-    g_print("Charset %s\n", charset);
+    g_print("Take care to provide an UTF-8 file in input:\n");
+    g_print("  iconv -f ISO-8859-2 -t UTF-8 < foo.dbc > foo.dbc.utf8\n");
 
     if (argc < 3) {
        g_print("Usage: %s <source.dbc> <dest.json>\n", argv[0]);
