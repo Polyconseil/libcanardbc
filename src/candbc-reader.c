@@ -22,16 +22,16 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
 #include <candbc-model.h>
 #include <candbc-reader.h>
 
-void yyrestart( FILE *input_file );
-YY_BUFFER_STATE yy_create_buffer( FILE *file, int size );
-void yy_switch_to_buffer ( YY_BUFFER_STATE new_buffer );
-char *current_yacc_file;
-FILE *yyin;
-int yyparse (void *YYPARSE_PARAM);
-void yy_delete_buffer ( YY_BUFFER_STATE b );
-
 dbc_t *dbc_read_file(char *filename)
 {
+  void yyrestart( FILE *input_file );
+  YY_BUFFER_STATE yy_create_buffer( FILE *file, int size );
+  void yy_switch_to_buffer ( YY_BUFFER_STATE new_buffer );
+  char *current_yacc_file;
+  FILE *yyin;
+  int yyparse (void *YYPARSE_PARAM);
+  void yy_delete_buffer ( YY_BUFFER_STATE b );
+
   int error;
   YY_BUFFER_STATE bufstate;
 
