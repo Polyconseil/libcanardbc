@@ -1,12 +1,12 @@
-m4_define([libcanhardbc_version_major], [0])
-m4_define([libcanhardbc_version_minor], [1])
-m4_define([libcanhardbc_version_micro], [0])
+m4_define([libcanardbc_version_major], [0])
+m4_define([libcanardbc_version_minor], [1])
+m4_define([libcanardbc_version_micro], [0])
 
-m4_define([libcanhardbc_version],
-    [libcanhardbc_version_major.libcanhardbc_version_minor.libcanhardbc_version_micro])
+m4_define([libcanardbc_version],
+    [libcanardbc_version_major.libcanardbc_version_minor.libcanardbc_version_micro])
 
 AC_PREREQ([2.63])
-AC_INIT([libcanhardbc], [libcanhardbc_version])
+AC_INIT([libcanardbc], [libcanardbc_version])
 AM_INIT_AUTOMAKE([
 	check-news
 	foreign
