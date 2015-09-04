@@ -153,7 +153,7 @@ void valtable_free(valtable_t *valtable)
 
 DEFINE_PLIST_FREE(valtable_list, valtable);
 
-void envvar_free(envvar_t *envvar)
+static void envvar_free(envvar_t *envvar)
 {
   if(envvar != NULL) {
     string_free(envvar->name);

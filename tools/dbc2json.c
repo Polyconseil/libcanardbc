@@ -57,7 +57,7 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
     return signal_count;
 }
 
-char* convert_attribute_value_to_string(attribute_value_t *attribute_value)
+static char* convert_attribute_value_to_string(attribute_value_t *attribute_value)
 {
     char *s_value;
 
@@ -85,7 +85,7 @@ char* convert_attribute_value_to_string(attribute_value_t *attribute_value)
     return s_value;
 }
 
-int extract_message_attributes(JsonBuilder *builder, attribute_list_t* attribute_list)
+static int extract_message_attributes(JsonBuilder *builder, attribute_list_t* attribute_list)
 {
     json_builder_set_member_name(builder, "attributes");
     json_builder_begin_object(builder);
@@ -108,10 +108,8 @@ int extract_message_attributes(JsonBuilder *builder, attribute_list_t* attribute
     return 0;
 }
 
-int extract_messages(JsonBuilder *builder, message_list_t *message_list)
+static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
 {
-    message_list_t *current = message_list;
-
     /* Extract message list */
     json_builder_set_member_name(builder, "messages");
     json_builder_begin_object(builder);
@@ -145,7 +143,7 @@ int extract_messages(JsonBuilder *builder, message_list_t *message_list)
 }
 
 
-int write_dbc_to_file(dbc_t *dbc, const char *filename)
+static int write_dbc_to_file(dbc_t *dbc, const char *filename)
 {
     JsonBuilder *builder = json_builder_new();
     GError *error = NULL;

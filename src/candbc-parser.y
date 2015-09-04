@@ -71,7 +71,7 @@ extern int yylex (void);
 extern char *yytext;
 extern int   yylineno;
 
-void
+static void
 yyerror (void* dbcptr, char* msg)
 {
   fprintf(stderr,"Error in line %d '%s', symbol '%s'\n",
@@ -179,7 +179,7 @@ static envvar_t *envvar_find(string_t name)
  * current_dbc->attribute_defition_list, the value is cast to the
  * already existing type.
  */
-void attribute_append(
+static void attribute_append(
   attribute_list_t **al,
   string_t           name,
   attribute_value_t *av)
