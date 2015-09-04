@@ -80,6 +80,8 @@ static char* convert_attribute_value_to_string(attribute_value_t *attribute_valu
       case vt_hex:
         s_value = g_strdup_printf("%lu", value.hex_val);
         break;
+      default:
+        s_value = NULL;
     }
 
     return s_value;
