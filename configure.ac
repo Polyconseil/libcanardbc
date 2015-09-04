@@ -6,8 +6,7 @@ m4_define([libcanhardbc_version],
     [libcanhardbc_version_major.libcanhardbc_version_minor.libcanhardbc_version_micro])
 
 AC_PREREQ([2.63])
-AC_INIT([libcanhardbc],
-		[libcanhardbc_version])
+AC_INIT([libcanhardbc], [libcanhardbc_version])
 AM_INIT_AUTOMAKE([
 	check-news
 	foreign
@@ -38,6 +37,10 @@ AC_FUNC_MALLOC
 AC_FUNC_STRTOD
 
 PKG_CHECK_MODULES(TESTS, [glib-2.0 >= 2.42 json-glib-1.0 >= 1.0.2])
+
+AC_SEARCH_LIBS([lrint], [m], [], [
+  AC_MSG_ERROR([Unable to find lrint() function])
+])
 
 AC_CONFIG_FILES([
 	Makefile

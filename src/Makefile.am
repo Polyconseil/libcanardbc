@@ -8,6 +8,7 @@ DEFS = $(YYDEBUG)
 
 # YACC: generate token defines for LEX
 AM_YFLAGS = -d
+
 AM_CPPFLAGS = -I{srcdir}
 
 ## Enable debugging of linker script parser
