@@ -36,11 +36,19 @@ AC_CHECK_FUNCS([ \
 AC_FUNC_MALLOC
 AC_FUNC_STRTOD
 
-PKG_CHECK_MODULES(TESTS, [glib-2.0 >= 2.42 json-glib-1.0 >= 1.0.2])
-
 AC_SEARCH_LIBS([lrint], [m], [], [
   AC_MSG_ERROR([Unable to find lrint() function])
 ])
+
+PKG_CHECK_MODULES(TESTS, [glib-2.0 >= 2.42 json-glib-1.0 >= 1.0.2])
+
+CFLAGS="$CFLAGS -Wall \
+-Wmissing-declarations -Wmissing-prototypes \
+-Wnested-externs -Wpointer-arith \
+-Wpointer-arith -Wsign-compare -Wchar-subscripts \
+-Wstrict-prototypes -Wshadow \
+-Wformat-security -Wtype-limits"
+AC_SUBST([CFLAGS])
 
 AC_CONFIG_FILES([
 	Makefile
