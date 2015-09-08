@@ -11,9 +11,9 @@ fix compilation issues on Mac OS X in libdbc.
 Only the DBC parser/lexer and associated library has been kept from the
 original project.
 
-The cantools project is licensed under GPLv3, this means you can't link
-the libraries of this project with a proprietary tool. This choice has been
-made on purpose by Andreas Heitmann and so this fork inherits of the license.
+The original cantools project is licensed under GPLv3, this means you can't link
+the libraries of this project with a proprietary tool. This choice has been made
+on purpose by Andreas Heitmann and so this fork inherits of the license.
 
 
 Installation
@@ -35,9 +35,15 @@ To install, just run the usual dance, `./configure && make install`. Run
 Tools
 -----
 
-This project is provided with a tool to convert a DBC file to a JSON file called
-dbc2json. It's up to you to adapt it to your needs.
+The directory `tools` contains several tools related to libcanardbc:
 
+- **dbc2json** converts a DBC file to a JSON file. It's up to you to adapt it to
+  your needs. This program is linked to libcanardbc so it is licensed under
+  GPLv3.
+
+- **can_frame_decoder** is a Python 3 script to parse a CAN frame using the JSON
+  file produced by dbc2jon. This program is distributed under BSD 3-Clause
+  license.
 
 DBC format
 ----------
