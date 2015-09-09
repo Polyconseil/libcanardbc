@@ -71,14 +71,14 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
     print("CAN data binary (%d): %s" % (can_data_binary_length, can_data_binary))
 
     for signal_name, signal_data in message['signals'].items():
-        signal_offset = signal_data['offset']
+        signal_bit_start = signal_data['bit_start']
         # Compute bit position from bit start (DBC format is awful...)
-        data_offset = (signal_offset // 8) * 8 + (7 - (signal_offset % 8))
+        data_bit_start = (signal_bit_start // 8) * 8 + (7 - (signal_bit_start % 8))
         signal_length = signal_data['length']
-        print("Signal offset %d (%d), computed position is %d" % (signal_offset, signal_length, data_offset))
+        print("Signal bit_start %d (%d), computed position is %d" % (signal_bit_start, signal_length, data_bit_start))
         # DBC addresses seem to be Big-Endian
         # 010010 bit start 4 and length 3: 100
-        s_value = can_data_binary[data_offset:data_offset + signal_length]
+        s_value = can_data_binary[data_bit_start:data_bit_start + signal_length]
         if not s_value:
             print("Error the CAN frame data provided is too short")
             return
@@ -86,6 +86,7 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
         value = int(s_value, 2) * signal_data.get('factor', 1)
         unit = signal_data.get('unit', '')
         print("Signal '{name}': {value} {unit}".format(name=signal_name, value=value, unit=unit))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Analyze of CAN frame with DBC information.")
