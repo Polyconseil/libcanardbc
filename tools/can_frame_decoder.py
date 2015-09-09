@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © 2015 Polyconseil SAS
-#
 # SPDX-License-Identifier: BSD-3-Clause
+#
+# Interpret CAN DLC (payload) to extract the values of the signals.
+# Requires a DBC file.
 
 import json
 import argparse

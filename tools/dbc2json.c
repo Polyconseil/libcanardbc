@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <glib/gprintf.h>
+#include <glib.h>
 #include <json-glib/json-glib.h>
 
 #include <candbc-model.h>
@@ -122,7 +122,6 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
         /* Keys are the message IDs */
         char *s_id = g_strdup_printf("%lu", message->id);
         json_builder_set_member_name(builder, s_id);
-        //g_warning(s_id);
         g_free(s_id);
 
         json_builder_begin_object(builder);
@@ -170,10 +169,9 @@ static int write_dbc_to_file(dbc_t *dbc, const char *filename)
 
     json_generator_set_indent(generator, 4);
     json_generator_set_pretty(generator, TRUE);
-    g_printf("Write JSON to %s\n", filename);
     json_generator_to_file(generator, filename, &error);
     if (error != NULL) {
-        g_printf("Unable to write file: %s\n", error->message);
+        g_printerr("Unable to generate file: %s\n", error->message);
     }
 
     json_node_free(root);
@@ -186,18 +184,22 @@ static int write_dbc_to_file(dbc_t *dbc, const char *filename)
 int main(int argc, char** argv) {
     dbc_t *dbc;
 
-    g_print("Take care to provide an UTF-8 file in input:\n");
-    g_print("  iconv -f ISO-8859-2 -t UTF-8 < foo.dbc > foo.dbc.utf8\n");
+    g_print("If your input file is not an UTF-8 file, you can do:\n");
+    g_print("  iconv -f ISO-8859-2 -t UTF-8 < foo.dbc > foo.dbc.utf8\n\n");
 
     if (argc < 3) {
        g_print("Usage: %s <source.dbc> <dest.json>\n", argv[0]);
        return EXIT_FAILURE;
     }
+    g_print("Read input file %s\n", argv[1]);
     dbc = dbc_read_file(argv[1]);
+    g_print("Write JSON output to %s\n", argv[2]);
     write_dbc_to_file(dbc, argv[2]);
-    g_printf("Number of signals: %d\n", total_signal_count);
-    g_printf("Total length of signal names: %d\n", total_signal_name_length);
-    g_printf("Total length of signal bits: %d\n", total_signal_bit_length);
+    g_print("Done.\n\n");
+
+    g_print("Number of signals: %d\n", total_signal_count);
+    g_print("Total length of signal names: %d\n", total_signal_name_length);
+    g_print("Total length of signal bits: %d\n", total_signal_bit_length);
 
     return 0;
 }
