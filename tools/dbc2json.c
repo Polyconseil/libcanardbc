@@ -26,14 +26,14 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
         total_signal_name_length += strlen(signal->name);
 
         json_builder_begin_object(builder);
-        json_builder_set_member_name(builder, "bitstart");
+        json_builder_set_member_name(builder, "offset");
         json_builder_add_int_value(builder, signal->bit_start);
 
         json_builder_set_member_name(builder, "length");
         json_builder_add_int_value(builder, signal->bit_len);
         total_signal_bit_length += signal->bit_len;
 
-        json_builder_set_member_name(builder, "scale");
+        json_builder_set_member_name(builder, "factor");
         json_builder_add_double_value(builder, signal->scale);
 
         json_builder_set_member_name(builder, "min");

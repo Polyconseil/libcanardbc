@@ -69,19 +69,19 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
     print("CAN data binary (%d): %s" % (can_data_binary_length, can_data_binary))
 
     for signal_name, signal_data in message['signals'].items():
-        bit_start = signal_data['bitstart']
+        signal_offset = signal_data['offset']
         # Compute bit position from bit start (DBC format is awful...)
-        bit_pos = (bit_start // 8) * 8 + (7 - (bit_start % 8))
-        bit_length = signal_data['length']
-        print("Bit start %d (%d), computed position is %d" % (bit_start, bit_length, bit_pos))
+        data_offset = (signal_offset // 8) * 8 + (7 - (signal_offset % 8))
+        signal_length = signal_data['length']
+        print("Signal offset %d (%d), computed position is %d" % (signal_offset, signal_length, data_offset))
         # DBC addresses seem to be Big-Endian
         # 010010 bit start 4 and length 3: 100
-        s_value = can_data_binary[bit_pos:bit_pos + bit_length]
+        s_value = can_data_binary[data_offset:data_offset + signal_length]
         if not s_value:
             print("Error the CAN frame data provided is too short")
             return
 
-        value = int(s_value, 2) * signal_data.get('scale', 1)
+        value = int(s_value, 2) * signal_data.get('factor', 1)
         unit = signal_data.get('unit', '')
         print("Signal '{name}': {value} {unit}".format(name=signal_name, value=value, unit=unit))
 
