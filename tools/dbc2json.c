@@ -36,6 +36,9 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
         json_builder_set_member_name(builder, "factor");
         json_builder_add_double_value(builder, signal->scale);
 
+        json_builder_set_member_name(builder, "offset");
+        json_builder_add_double_value(builder, signal->offset);
+
         json_builder_set_member_name(builder, "min");
         json_builder_add_double_value(builder, signal->min);
 
