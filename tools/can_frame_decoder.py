@@ -85,6 +85,10 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
 
     for signal_name, signal_data in message['signals'].items():
         signal_bit_start = signal_data['bit_start']
+        if signal_bit_start >= can_data_binary_length:
+            raise ValueError("Bit start %d of signal %s is too high" % (
+                signal_bit_start, signal_name))
+
         # Compute bit position from bit start (DBC format is awful...)
         data_bit_start = (signal_bit_start // 8) * 8 + (7 - (signal_bit_start % 8))
         signal_length = signal_data['length']
