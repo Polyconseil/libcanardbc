@@ -8,7 +8,6 @@
 #include <candbc-reader.h>
 
 static int total_signal_count = 0;
-static int total_signal_name_length = 0;
 static int total_signal_bit_length = 0;
 
 static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list)
@@ -23,7 +22,6 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
 
         /* Keys are the signal names */
         json_builder_set_member_name(builder, signal->name);
-        total_signal_name_length += strlen(signal->name);
 
         json_builder_begin_object(builder);
         json_builder_set_member_name(builder, "bit_start");
@@ -115,6 +113,8 @@ static int extract_message_attributes(JsonBuilder *builder, attribute_list_t* at
 
 static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
 {
+    int message_count = 0;
+
     /* Extract message list */
     json_builder_set_member_name(builder, "messages");
     json_builder_begin_object(builder);
@@ -138,17 +138,20 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
         total_signal_count += extract_message_signals(builder, message->signal_list);
 
         json_builder_end_object(builder);
+
+        message_count++;
         message_list = message_list->next;
     }
 
     json_builder_end_object(builder);
 
-    return 0;
+    return message_count;
 }
 
 
 static int write_dbc_to_file(dbc_t *dbc, const char *filename)
 {
+    int message_count;
     JsonBuilder *builder = json_builder_new();
     GError *error = NULL;
 
@@ -161,7 +164,7 @@ static int write_dbc_to_file(dbc_t *dbc, const char *filename)
     json_builder_set_member_name(builder, "version");
     json_builder_add_string_value(builder, dbc->version);
 
-    extract_messages(builder, dbc->message_list);
+    message_count = extract_messages(builder, dbc->message_list);
 
     json_builder_end_object(builder);
 
@@ -181,11 +184,12 @@ static int write_dbc_to_file(dbc_t *dbc, const char *filename)
     g_object_unref(generator);
     g_object_unref(builder);
 
-    return 0;
+    return message_count;
 }
 
 int main(int argc, char** argv) {
     dbc_t *dbc;
+    int message_count;
 
     g_print("If your input file is not an UTF-8 file, you can do:\n");
     g_print("  iconv -f ISO-8859-2 -t UTF-8 < foo.dbc > foo.dbc.utf8\n\n");
@@ -197,11 +201,11 @@ int main(int argc, char** argv) {
     g_print("Read input file %s\n", argv[1]);
     dbc = dbc_read_file(argv[1]);
     g_print("Write JSON output to %s\n", argv[2]);
-    write_dbc_to_file(dbc, argv[2]);
+    message_count = write_dbc_to_file(dbc, argv[2]);
     g_print("Done.\n\n");
 
+    g_print("Number of messages: %d\n", message_count);
     g_print("Number of signals: %d\n", total_signal_count);
-    g_print("Total length of signal names: %d\n", total_signal_name_length);
     g_print("Total length of signal bits: %d\n", total_signal_bit_length);
 
     return 0;
