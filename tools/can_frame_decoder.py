@@ -88,7 +88,6 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
         # Compute bit position from bit start (DBC format is awful...)
         data_bit_start = (signal_bit_start // 8) * 8 + (7 - (signal_bit_start % 8))
         signal_length = signal_data['length']
-        print("Signal bit_start %d (%d), computed position is %d" % (signal_bit_start, signal_length, data_bit_start))
         # DBC addresses seem to be Big-Endian
         # 010010 bit start 4 and length 3: 100
         s_value = can_data_binary[data_bit_start:data_bit_start + signal_length]
@@ -100,7 +99,10 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
         signal_offset = signal_data.get('offset', 0)
         value = int(s_value, 2) * signal_factor + signal_offset
         unit = signal_data.get('unit', '')
-        print("Signal '{name}': {value} {unit}".format(name=signal_name, value=value, unit=unit))
+        print("""Signal {name} - start {bit_start}, length {length}, factor {factor}, \
+offset {offset} = {value} {unit}""".format(
+            name=signal_name, bit_start=signal_bit_start, length=signal_length,
+            factor=signal_factor, offset=signal_offset, value=value, unit=unit))
 
 
 if __name__ == '__main__':
