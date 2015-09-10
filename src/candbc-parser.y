@@ -312,7 +312,7 @@ static void attribute_append(
 %token T_NAN
 
 %type <number>                    T_INT_VAL bit_start bit_len
-                                  endianess signedness T_DUMMY_NODE_VECTOR
+                                  endianness signedness T_DUMMY_NODE_VECTOR
 %type <double_val>                T_DOUBLE_VAL scale offset min max double_val
 %type <string>                    T_ID T_STRING_VAL version
 %type <string_list>               space_identifier_list comma_identifier_list
@@ -980,7 +980,7 @@ signal_list:
 
 signal:
       T_SG signal_name mux_info T_COLON
-      bit_start T_SEP bit_len T_AT endianess signedness
+      bit_start T_SEP bit_len T_AT endianness signedness
       T_PAR_OPEN scale T_COMMA offset T_PAR_CLOSE
       T_BOX_OPEN min T_SEP max T_BOX_CLOSE
       T_STRING_VAL comma_identifier_list
@@ -991,7 +991,7 @@ signal:
       signal->mux_value  = $3.mux_value;
       signal->bit_start  = $5;
       signal->bit_len    = $7;
-      signal->endianess  = $9;
+      signal->endianness  = $9;
       signal->signedness = $10;
       signal->scale      = $12;
       signal->offset     = $14;
@@ -1103,7 +1103,7 @@ offset: double_val { $$ = $1; };
 min:    double_val { $$ = $1; };
 max:    double_val { $$ = $1; };
 
-endianess: T_INT_VAL { $$ = $1; };
+endianness: T_INT_VAL { $$ = $1; };
 
 signedness:
       T_PLUS  { $$ = 0; }

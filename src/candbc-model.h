@@ -179,7 +179,7 @@ typedef struct {
   uint32	    mux_value;
   uint8 	    bit_start;
   uint8 	    bit_len;
-  uint8 	    endianess;
+  uint8 	    endianness;
   uint8 	    signedness;
   double	    scale;
   double	    offset;
