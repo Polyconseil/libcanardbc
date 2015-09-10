@@ -66,7 +66,7 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
     - CAN data length, the length of CAN data in bytes."""
     try:
         message = dbc_json['messages'].get(str(can_id))
-        print("Message %s" % message['name'])
+        print("Message %s (%d)" % (message['name'], can_id))
     except KeyError:
         print("Invalid DBC file (no messages entry)")
 
