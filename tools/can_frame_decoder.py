@@ -96,7 +96,9 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
             print("Error the CAN frame data provided is too short")
             return
 
-        value = int(s_value, 2) * signal_data.get('factor', 1) + signal_data['offset']
+        signal_factor = signal_data.get('factor', 1)
+        signal_offset = signal_data.get('offset', 0)
+        value = int(s_value, 2) * signal_factor + signal_offset
         unit = signal_data.get('unit', '')
         print("Signal '{name}': {value} {unit}".format(name=signal_name, value=value, unit=unit))
 
