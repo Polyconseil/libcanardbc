@@ -6,23 +6,36 @@
 #
 # Interpret CAN DLC (payload) to extract the values of the signals.
 # Requires a DBC file.
+#
 
 import json
 import argparse
 
 def args_cleanup(args):
+    # Check and cleanup message ID (minium 0x1)
+    if len(args.id) > 2 and args.id[:2] == '0x':
+        # It's an hexadecimal number
+        can_id = int(args.id, 16)
+    else:
+        can_id = int(args.data)
+
     # Check and convert frame data to be a string of hexadecimal numbers without the 0x prefix
     if len(args.data) < 4:
-        print("The CAN frame is too short '%s'." % args.data)
+        print("The CAN data is too short '%s'." % args.data)
+        return
+
+    if args.data[:2] != '0x':
+        print("The CAN data '%s' is not prefixed by 0x." % args.data)
         return
 
     is_multiple_of_two = (len(args.data) % 2) == 0
     if not is_multiple_of_two:
-        print("The CAN frame is not a multiple of two '%s'." % args.data)
+        print("The CAN data is not a multiple of two '%s'." % args.data)
         return
 
     try:
-        hex(eval(args.data))
+        # Check hexadecimal
+        int(args.data, 16)
         # Remove 0x
         data = args.data[2:]
         # Compute length in bytes
@@ -39,7 +52,7 @@ def args_cleanup(args):
         return
 
     return {
-        'can_id': args.id, 'can_data': data,
+        'can_id': can_id, 'can_data': data,
         'can_data_length': data_length, 'dbc_json': dbc_json
     }
 
@@ -90,8 +103,8 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Analyze of CAN frame with DBC information.")
-    parser.add_argument('id', type=int, help="ID of the equipment on the CAN bus")
-    parser.add_argument('data', type=str, help="data in hexadecimal (eg. 0xA234B)")
+    parser.add_argument('id', type=str, help="ID of the message on the CAN bus (eg. 0x5BB)")
+    parser.add_argument('data', type=str, help="data in hexadecimal (eg. 0x1112131415161718)")
     parser.add_argument(
         'dbcfile', type=argparse.FileType('r'),
         help="DBC in JSON format to use for decoding")
