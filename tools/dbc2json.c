@@ -14,6 +14,9 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
 {
     int signal_count = 0;
 
+    if (signal_list == NULL)
+        return 0;
+
     json_builder_set_member_name(builder, "signals");
     json_builder_begin_object(builder);
 
@@ -85,7 +88,7 @@ static char* convert_attribute_value_to_string(attribute_value_t *attribute_valu
     value_type_t value_type = attribute_value->value_type;
     value_union_t value = attribute_value->value;
 
-    switch(value_type) {
+    switch (value_type) {
       case vt_integer:
         s_value = g_strdup_printf("%ld", value.int_val);
         break;
