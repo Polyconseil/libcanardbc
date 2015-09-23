@@ -111,6 +111,47 @@ static char* convert_attribute_value_to_string(attribute_value_t *attribute_valu
     return s_value;
 }
 
+static int extract_attribute_definitions(JsonBuilder *builder, attribute_definition_list_t* attribute_definition_list)
+{
+    if (attribute_definition_list == NULL)
+        return 0;
+
+    json_builder_set_member_name(builder, "attribute_definitions");
+    json_builder_begin_object(builder);
+
+    while (attribute_definition_list != NULL) {
+        attribute_definition_t *attribute_definition = attribute_definition_list->attribute_definition;
+
+        /* Extract ONLY enums of message objects */
+        if (attribute_definition->object_type == ot_message &&
+            attribute_definition->value_type == vt_enum) {
+            /* Union */
+            string_list_t *string_list = attribute_definition->range.enum_list;
+            int i;
+
+            json_builder_set_member_name(builder, attribute_definition->name);
+            json_builder_begin_object(builder);
+
+            i = 0;
+            while (string_list != NULL) {
+                char *s_value = g_strdup_printf("%d", i);
+                json_builder_set_member_name(builder, s_value);
+                g_free(s_value);
+                json_builder_add_string_value(builder, string_list->string);
+
+                i++;
+                string_list = string_list->next;
+            }
+
+            json_builder_end_object(builder);
+        }
+        attribute_definition_list = attribute_definition_list->next;
+    }
+    json_builder_end_object(builder);
+
+    return 0;
+}
+
 static int extract_message_attributes(JsonBuilder *builder, attribute_list_t* attribute_list)
 {
     json_builder_set_member_name(builder, "attributes");
@@ -190,6 +231,8 @@ static int write_dbc_to_file(dbc_t *dbc, const char *filename)
     json_builder_set_member_name(builder, "version");
     json_builder_add_string_value(builder, dbc->version);
 
+    /* Extract attribute definitions of messages ONLY */
+    extract_attribute_definitions(builder, dbc->attribute_definition_list);
     message_count = extract_messages(builder, dbc->message_list);
 
     json_builder_end_object(builder);
