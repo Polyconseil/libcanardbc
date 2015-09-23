@@ -154,20 +154,19 @@ static int extract_attribute_definitions(JsonBuilder *builder, attribute_definit
 
 static int extract_message_attributes(JsonBuilder *builder, attribute_list_t* attribute_list)
 {
+    if (attribute_list == NULL)
+        return 0;
+
     json_builder_set_member_name(builder, "attributes");
     json_builder_begin_object(builder);
 
-    /* Extract only one attribute GenMsgSendType */
     while (attribute_list != NULL) {
         attribute_t *attribute = attribute_list->attribute;
+        char *s_value = convert_attribute_value_to_string(attribute->value);
+        json_builder_set_member_name(builder, attribute->name);
+        json_builder_add_string_value(builder, s_value);
+        g_free(s_value);
 
-        if (g_strcmp0(attribute->name, "GenMsgSendType") == 0) {
-            char *s_value = convert_attribute_value_to_string(attribute->value);
-            json_builder_set_member_name(builder, attribute->name);
-            /* FIXME Normalize with constant */
-            json_builder_add_string_value(builder, s_value);
-            g_free(s_value);
-        }
         attribute_list = attribute_list->next;
     }
     json_builder_end_object(builder);
