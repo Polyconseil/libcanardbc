@@ -51,6 +51,23 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
             json_builder_add_string_value(builder, signal->unit);
         }
 
+        if (signal->val_map != NULL) {
+            val_map_t *val_map = signal->val_map;
+
+            json_builder_set_member_name(builder, "enums");
+            json_builder_begin_object(builder);
+            while (val_map != NULL) {
+                val_map_entry_t *val_map_entry = val_map->val_map_entry;
+                gchar *key = g_strdup_printf("%lu", val_map_entry->index);
+                json_builder_set_member_name(builder, key);
+                json_builder_add_string_value(builder, val_map_entry->value);
+                g_free(key);
+
+                val_map = val_map->next;
+            }
+            json_builder_end_object(builder);
+        }
+
         json_builder_end_object(builder);
 
         signal_count++;
