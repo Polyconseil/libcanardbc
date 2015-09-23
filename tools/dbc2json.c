@@ -151,6 +151,9 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
         json_builder_set_member_name(builder, "name");
         json_builder_add_string_value(builder, message->name);
 
+        json_builder_set_member_name(builder, "sender");
+        json_builder_add_string_value(builder, message->sender);
+
         json_builder_set_member_name(builder, "length");
         json_builder_add_int_value(builder, message->len);
 
