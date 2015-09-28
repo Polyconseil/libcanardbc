@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # Copyright © 2015 Polyconseil SAS
@@ -65,11 +65,16 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
     - CAN ID, integer
     - CAN data, string of hexadecimal numbers
     - CAN data length, the length of CAN data in bytes."""
+    if 'messages' not in dbc_json:
+        print("Invalid DBC file (no messages entry).")
+        return
+
     try:
-        message = dbc_json['messages'].get(str(can_id))
+        message = dbc_json['messages'][str(can_id)]
         print("Message %s (%d)" % (message['name'], can_id))
     except KeyError:
-        print("Invalid DBC file (no messages entry)")
+        print("Message ID %d (0x%x) not found in JSON file." % (can_id, can_id))
+        return
 
     # Inverse byte order for DBC 0xAABBCCDD to 0xDDCCBBAA
     can_data_inverted = ''
