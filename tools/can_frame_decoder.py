@@ -11,13 +11,14 @@
 import json
 import argparse
 
+
 def args_cleanup(args):
     # Check and cleanup message ID (minium 0x1)
     if len(args.id) > 2 and args.id[:2] == '0x':
         # It's an hexadecimal number
         can_id = int(args.id, 16)
     else:
-        can_id = int(args.data)
+        can_id = int(args.id)
 
     # Check and convert frame data to be a string of hexadecimal numbers without the 0x prefix
     if len(args.data) < 4:
