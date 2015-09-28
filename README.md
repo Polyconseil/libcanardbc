@@ -41,6 +41,9 @@ The directory `tools` contains several tools related to libcanardbc:
   your needs. This program is linked to libcanardbc so it is licensed under
   GPLv3.
 
+- **json2html** renders a JSON file (DBC) to an HTML page. This program is
+  distributed under BSD 3-Clause license.
+
 - **can_frame_decoder** is a Python 3 script to parse a CAN frame using the JSON
   file produced by dbc2jon. This program is distributed under BSD 3-Clause
   license.
