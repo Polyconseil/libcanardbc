@@ -124,11 +124,11 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Analyze of CAN frame with DBC information.")
-    parser.add_argument('id', type=str, help="ID of the message on the CAN bus (eg. 0x5BB)")
-    parser.add_argument('data', type=str, help="data in hexadecimal (eg. 0x1112131415161718)")
     parser.add_argument(
         'dbcfile', type=argparse.FileType('r'),
-        help="DBC in JSON format to use for decoding")
+        help="DBC file converted in JSON format to use for decoding.")
+    parser.add_argument('id', type=str, help="ID of the message on the CAN bus (eg. 0x5BB or 1467)")
+    parser.add_argument('data', type=str, help="data in hexadecimal (eg. 0x1112131415161718)")
     args = parser.parse_args()
 
     cleanup = args_cleanup(args)
