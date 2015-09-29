@@ -89,7 +89,8 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
     can_data_binary = format(eval('0x' + can_data_inverted), '0%db' % can_data_binary_length)
     print("CAN data binary (%d): %s" % (can_data_binary_length, can_data_binary))
 
-    for signal_name, signal_data in message['signals'].items():
+    signals = sorted(message['signals'].items(), key=lambda t: int(t[1]['bit_start']))
+    for signal_name, signal_data in signals:
         signal_bit_start = signal_data['bit_start']
         if signal_bit_start >= can_data_binary_length:
             raise ValueError("Bit start %d of signal %s is too high" % (
