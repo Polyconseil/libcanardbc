@@ -106,8 +106,8 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
             print("Error the CAN frame data provided is too short")
             return
 
-        is_big_endian = int(signal_data['big_endian'])
-        if not is_big_endian:
+        is_little_endian = int(signal_data['little_endian'])
+        if is_little_endian:
             # In Intel format (little-endian), bit_start is the position of the
             # Least Significant Bit so it needs to be reversed
             s_value = s_value[::-1]
@@ -119,7 +119,7 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
         print("""Signal {name} - ({length}@{bit_start} {endianness})x{factor}+{offset} = {value} {unit}""".format(
             name=signal_name, bit_start=signal_bit_start, length=signal_length,
             factor=signal_factor, offset=signal_offset,
-            endianness="MSB" if is_big_endian else "LSB",
+            endianness="LSB" if is_little_endian else "MSB",
             value=value, unit=unit))
 
 

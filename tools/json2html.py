@@ -37,7 +37,7 @@ def print_html_signals(signals):
             enums = ''
 
         print(u"<td>%s</td>" * 7 % (
-            signal["bit_start"], signal["length"], "MSB" if signal["big_endian"] else "LSB",
+            signal["bit_start"], signal["length"], "LSB" if signal["little_endian"] else "MSB",
             signal["factor"], signal["offset"], "%s to %s" % (signal["min"], signal["max"]), enums))
         print("</tr>")
     print("</table>")

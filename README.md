@@ -54,5 +54,5 @@ DBC format
 The syntax of signals in DBC file is:
 
 ```
-<object> <name> : <start bit>|<length>@<endiannes ex. 1 for BE><signedness ex. + (unsigned) or - (signed)> (<factor>,<offset>) <range, ex. 0|360> "<unit>" <nodes>
+<object> <name> : <start bit>|<length>@<endiannes ex. 0 for Motorola, 1 for Intel><signedness ex. + (unsigned) or - (signed)> (<factor>,<offset>) <range, ex. 0|360> "<unit>" <nodes>
 ```

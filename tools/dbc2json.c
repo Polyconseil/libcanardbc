@@ -34,7 +34,7 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
         json_builder_add_int_value(builder, signal->bit_len);
         total_signal_bit_length += signal->bit_len;
 
-        json_builder_set_member_name(builder, "big_endian");
+        json_builder_set_member_name(builder, "little_endian");
         json_builder_add_int_value(builder, signal->endianness);
 
         json_builder_set_member_name(builder, "factor");
