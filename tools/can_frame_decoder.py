@@ -8,6 +8,7 @@
 # Requires a DBC file.
 #
 
+import sys
 import json
 import argparse
 
@@ -22,16 +23,16 @@ def args_cleanup(args):
 
     # Check and convert frame data to be a string of hexadecimal numbers without the 0x prefix
     if len(args.data) < 4:
-        print("The CAN data is too short '%s'." % args.data)
+        print("The CAN data is too short '%s'." % args.data, file=sys.stderr)
         return
 
     if args.data[:2] != '0x':
-        print("The CAN data '%s' is not prefixed by 0x." % args.data)
+        print("The CAN data '%s' is not prefixed by 0x." % args.data, file=sys.stderr)
         return
 
     is_multiple_of_two = (len(args.data) % 2) == 0
     if not is_multiple_of_two:
-        print("The CAN data is not a multiple of two '%s'." % args.data)
+        print("The CAN data is not a multiple of two '%s'." % args.data, file=sys.stderr)
         return
 
     try:
@@ -42,14 +43,14 @@ def args_cleanup(args):
         # Compute length in bytes
         data_length = len(data) // 2
     except ValueError:
-        print("Invalid data argument '%s'." % args.data)
+        print("Invalid data argument '%s'." % args.data, file=sys.stderr)
         return
 
     # Load file as JSON file
     try:
         dbc_json = json.loads(args.dbcfile.read())
     except ValueError:
-        print("Unable to load the DBC file '%s' as JSON." % args.dbcfile)
+        print("Unable to load the DBC file '%s' as JSON." % args.dbcfile, file=sys.stderr)
         return
 
     return {
@@ -66,14 +67,14 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
     - CAN data, string of hexadecimal numbers
     - CAN data length, the length of CAN data in bytes."""
     if 'messages' not in dbc_json:
-        print("Invalid DBC file (no messages entry).")
+        print("Invalid DBC file (no messages entry).", file=sys.stderr)
         return
 
     try:
         message = dbc_json['messages'][str(can_id)]
         print("Message %s (%d)" % (message['name'], can_id))
     except KeyError:
-        print("Message ID %d (0x%x) not found in JSON file." % (can_id, can_id))
+        print("Message ID %d (0x%x) not found in JSON file." % (can_id, can_id), file=sys.stderr)
         return
 
     # Inverse byte order for DBC 0xAABBCCDD to 0xDDCCBBAA
@@ -103,7 +104,7 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
         s_value = can_data_binary[data_bit_start:data_bit_start + signal_length]
         # If BE first bit is LSB
         if not s_value:
-            print("Error the CAN frame data provided is too short")
+            print("Error the CAN frame data provided is too short", file=sys.stderr)
             return
 
         is_little_endian = int(signal_data['little_endian'])
