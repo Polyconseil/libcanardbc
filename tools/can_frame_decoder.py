@@ -59,7 +59,7 @@ def args_cleanup(args):
     }
 
 
-def frame_decode(can_id, can_data, can_data_length, dbc_json):
+def frame_decode(can_id, can_data, can_data_length, dbc_json, is_json_output=False):
     """Decode a CAN frame.
 
     Arguments:
@@ -70,9 +70,15 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
         print("Invalid DBC file (no messages entry).", file=sys.stderr)
         return
 
+    if is_json_output:
+        output = {'signals': []}
+
     try:
         message = dbc_json['messages'][str(can_id)]
-        print("Message %s (%d)" % (message['name'], can_id))
+        if is_json_output:
+            output['message'] = {'name': message['name'], 'id': can_id}
+        else:
+            print("Message %s (%d)" % (message['name'], can_id))
     except KeyError:
         print("Message ID %d (0x%x) not found in JSON file." % (can_id, can_id), file=sys.stderr)
         return
@@ -83,12 +89,20 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
         index = (can_data_length - i - 1) * 2
         can_data_inverted += can_data[index:index + 2]
 
-    print("CAN data: %s" % can_data)
-    print("CAN data inverted: %s" % can_data_inverted)
     can_data_binary_length = can_data_length * 8
     # 0n to fit in n characters width with 0 padding
     can_data_binary = format(eval('0x' + can_data_inverted), '0%db' % can_data_binary_length)
-    print("CAN data binary (%d): %s" % (can_data_binary_length, can_data_binary))
+
+    if is_json_output:
+        output['data'] = {
+            'original': can_data,
+            'inverted': can_data_inverted,
+            'binary': can_data_binary
+        }
+    else:
+        print("CAN data: %s" % can_data)
+        print("CAN data inverted: %s" % can_data_inverted)
+        print("CAN data binary (%d): %s" % (can_data_binary_length, can_data_binary))
 
     signals = sorted(message['signals'].items(), key=lambda t: int(t[1]['bit_start']))
     for signal_name, signal_data in signals:
@@ -117,11 +131,26 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json):
         signal_offset = signal_data.get('offset', 0)
         value = int(s_value, 2) * signal_factor + signal_offset
         unit = signal_data.get('unit', '')
-        print("""Signal {name} - ({length}@{bit_start} {endianness})x{factor}+{offset} = {value} {unit}""".format(
-            name=signal_name, bit_start=signal_bit_start, length=signal_length,
-            factor=signal_factor, offset=signal_offset,
-            endianness="LSB" if is_little_endian else "MSB",
-            value=value, unit=unit))
+        if is_json_output:
+            signal = {
+                'name': signal_name,
+                'bit_start': signal_bit_start,
+                'length': signal_length,
+                'factor': signal_factor,
+                'offset': signal_offset,
+                'endianness': 'LSB' if is_little_endian else 'MSB',
+                'value': value, 'unit': unit
+            }
+            output['signals'].append(signal)
+        else:
+            print("""Signal {name} - ({length}@{bit_start} {endianness})x{factor}+{offset} = {value} {unit}""".format(
+                name=signal_name, bit_start=signal_bit_start, length=signal_length,
+                factor=signal_factor, offset=signal_offset,
+                endianness="LSB" if is_little_endian else "MSB",
+                value=value, unit=unit))
+
+    if is_json_output:
+        return output
 
 
 if __name__ == '__main__':
@@ -131,8 +160,14 @@ if __name__ == '__main__':
         help="DBC file converted in JSON format to use for decoding.")
     parser.add_argument('id', type=str, help="ID of the message on the CAN bus (eg. 0x5BB or 1467)")
     parser.add_argument('data', type=str, help="data in hexadecimal (eg. 0x1112131415161718)")
+    parser.add_argument('--output', type=str, choices=['json', 'text'], default='text',
+        help="Format of the output (JSON or text)")
     args = parser.parse_args()
+    args.is_json_output = (args.output == 'json')
 
     cleanup = args_cleanup(args)
     if cleanup:
-        frame_decode(**cleanup)
+        frame_decode(
+            can_id=cleanup['can_id'], can_data=cleanup['can_data'],
+            can_data_length=cleanup['can_data_length'], dbc_json=cleanup['dbc_json'],
+            is_json_output=args.is_json_output)
