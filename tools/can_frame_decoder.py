@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Copyright © 2015 Polyconseil SAS
 # SPDX-License-Identifier: BSD-3-Clause
@@ -12,6 +11,8 @@ import sys
 import json
 import argparse
 
+CAN_DATA_BYTE_LENGTH = 8
+
 
 def args_cleanup(args):
     # Check and cleanup message ID (minium 0x1)
@@ -21,27 +22,40 @@ def args_cleanup(args):
     else:
         can_id = int(args.id)
 
-    # Check and convert frame data to be a string of hexadecimal numbers without the 0x prefix
+    # Check the message data
+
+    # Check the length of the data before removing the 0x prefix
     if len(args.data) < 4:
         print("The CAN data is too short '%s'." % args.data, file=sys.stderr)
         return
 
+    # Test the first bytes are the 0x prefix
     if args.data[:2] != '0x':
         print("The CAN data '%s' is not prefixed by 0x." % args.data, file=sys.stderr)
         return
 
-    is_multiple_of_two = (len(args.data) % 2) == 0
+    # Remove the 0x prefix
+    data = args.data[2:]
+    data_length = len(data)
+
+    is_multiple_of_two = (data_length % 2) == 0
     if not is_multiple_of_two:
         print("The CAN data is not a multiple of two '%s'." % args.data, file=sys.stderr)
         return
 
+    data_byte_length = data_length // 2
+    if data_byte_length > CAN_DATA_BYTE_LENGTH:
+        print("The CAN data length is too large (%d > %d)" % (
+            data_byte_length, CAN_DATA_BYTE_LENGTH), file=sys.stderr)
+        return
+
     try:
         # Check hexadecimal
-        int(args.data, 16)
-        # Remove 0x
-        data = args.data[2:]
-        # Compute length in bytes
-        data_length = len(data) // 2
+        int(data, 16)
+
+        # The signal addresses are indicated in DBC file for CAN message of 64 bits so we add
+        # missing bits at the beginning of the string.
+        # data = '00' * (CAN_DATA_BYTE_LENGTH - data_byte_length) + data
     except ValueError:
         print("Invalid data argument '%s'." % args.data, file=sys.stderr)
         return
@@ -54,23 +68,34 @@ def args_cleanup(args):
         return
 
     return {
-        'can_id': can_id, 'can_data': data,
-        'can_data_length': data_length, 'dbc_json': dbc_json
+        'can_id': can_id, 'can_data': data, 'dbc_json': dbc_json
     }
 
 
-def frame_decode(can_id, can_data, can_data_length, dbc_json, is_json_output=False):
+def swap_bytes(data):
+    # Inverse byte order for DBC 0xAABBCCDD to 0xDDCCBBAA
+    # FIXME prefill or postfill?
+    data_swapped = ''
+    for i in range(len(data), 0, -8):
+        data_swapped += data[i - 8:i]
+    return data_swapped
+
+
+def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
     """Decode a CAN frame.
 
     Arguments:
-    - CAN ID, integer
-    - CAN data, string of hexadecimal numbers
-    - CAN data length, the length of CAN data in bytes."""
+    - can_id, CAN ID as integer
+    - can_data, string of hexadecimal numbers
+    - dbc_json, DBC file parsed with JSON reader
+    - is_json_output, print output in JSON or not
+    """
     if 'messages' not in dbc_json:
         print("Invalid DBC file (no messages entry).", file=sys.stderr)
         return
 
     if is_json_output:
+        # Initialize the structure to output JSON
         output = {'signals': []}
 
     try:
@@ -83,49 +108,60 @@ def frame_decode(can_id, can_data, can_data_length, dbc_json, is_json_output=Fal
         print("Message ID %d (0x%x) not found in JSON file." % (can_id, can_id), file=sys.stderr)
         return
 
-    # Inverse byte order for DBC 0xAABBCCDD to 0xDDCCBBAA
-    can_data_inverted = ''
-    for i in range(can_data_length):
-        index = (can_data_length - i - 1) * 2
-        can_data_inverted += can_data[index:index + 2]
+    # Intel (2 characters for a byte)
+    can_data_binary_length_lsb = len(can_data) * 4
 
-    can_data_binary_length = can_data_length * 8
+    # Motorola requires prefilled data
+    can_data_binary_length_msb = len(can_data) * 4
+
     # 0n to fit in n characters width with 0 padding
-    can_data_binary = format(eval('0x' + can_data_inverted), '0%db' % can_data_binary_length)
+    can_data_binary_msb = format(eval('0x' + can_data), '0%db' % can_data_binary_length_msb)
+    # For Intel
+    can_data_binary_lsb = swap_bytes(can_data_binary_msb)
 
     if is_json_output:
         output['data'] = {
             'original': can_data,
-            'inverted': can_data_inverted,
-            'binary': can_data_binary
+            'binary_msb': can_data_binary_msb,
+            'binary_lsb': can_data_binary_lsb
         }
     else:
         print("CAN data: %s" % can_data)
-        print("CAN data inverted: %s" % can_data_inverted)
-        print("CAN data binary (%d): %s" % (can_data_binary_length, can_data_binary))
+        print("CAN data binary MSB: %s" % (can_data_binary_msb))
+        print("CAN data binary LSB: %s" % (can_data_binary_lsb))
 
     signals = sorted(message['signals'].items(), key=lambda t: int(t[1]['bit_start']))
     for signal_name, signal_data in signals:
         signal_bit_start = signal_data['bit_start']
+        is_little_endian = int(signal_data['little_endian'])
+
+        if is_little_endian:
+            can_data_binary = can_data_binary_lsb
+            can_data_binary_length = can_data_binary_length_lsb
+        else:
+            can_data_binary = can_data_binary_msb
+            can_data_binary_length = can_data_binary_length_msb
+
         if signal_bit_start >= can_data_binary_length:
             raise ValueError("Bit start %d of signal %s is too high" % (
                 signal_bit_start, signal_name))
 
-        # Compute bit position from bit start (DBC format is awful...)
-        data_bit_start = (signal_bit_start // 8) * 8 + (7 - (signal_bit_start % 8))
         signal_length = signal_data['length']
-        # 010010 bit start 4 and length 3: 100
-        s_value = can_data_binary[data_bit_start:data_bit_start + signal_length]
-        # If BE first bit is LSB
-        if not s_value:
-            print("Error the CAN frame data provided is too short", file=sys.stderr)
-            return
-
-        is_little_endian = int(signal_data['little_endian'])
         if is_little_endian:
             # In Intel format (little-endian), bit_start is the position of the
-            # Least Significant Bit so it needs to be reversed
-            s_value = s_value[::-1]
+            # Least Significant Bit so it needs to be byte swapped
+            signal_bit_end = can_data_binary_length - signal_bit_start
+            signal_bit_start = signal_bit_end - signal_length
+        else:
+            # Motorola. Weird thing of the DBC format
+            signal_bit_start = (signal_bit_start // 8) * 8 + (7 - (signal_bit_start % 8))
+            signal_bit_end = signal_bit_start + signal_length
+
+        s_value = can_data_binary[signal_bit_start:signal_bit_end]
+        # print("%s %d:%d => %d:%d = %s" % (
+        #     signal_name,
+        #     signal_data['bit_start'], signal_data['bit_start'] + signal_length,
+        #     signal_bit_start, signal_bit_end, hex(int(s_value, 2))))
 
         signal_factor = signal_data.get('factor', 1)
         signal_offset = signal_data.get('offset', 0)
@@ -169,5 +205,4 @@ if __name__ == '__main__':
     if cleanup:
         frame_decode(
             can_id=cleanup['can_id'], can_data=cleanup['can_data'],
-            can_data_length=cleanup['can_data_length'], dbc_json=cleanup['dbc_json'],
-            is_json_output=args.is_json_output)
+            dbc_json=cleanup['dbc_json'], is_json_output=args.is_json_output)
