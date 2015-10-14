@@ -7,7 +7,6 @@
 # Requires a DBC file.
 #
 
-import sys
 import json
 import argparse
 
@@ -26,13 +25,11 @@ def args_cleanup(args):
 
     # Check the length of the data before removing the 0x prefix
     if len(args.data) < 4:
-        print("The CAN data is too short '%s'." % args.data, file=sys.stderr)
-        return
+        raise ValueError("The CAN data is too short '%s'." % args.data)
 
     # Test the first bytes are the 0x prefix
     if args.data[:2] != '0x':
-        print("The CAN data '%s' is not prefixed by 0x." % args.data, file=sys.stderr)
-        return
+        raise ValueError("The CAN data '%s' is not prefixed by 0x." % args.data)
 
     # Remove the 0x prefix
     data = args.data[2:]
@@ -40,32 +37,24 @@ def args_cleanup(args):
 
     is_multiple_of_two = (data_length % 2) == 0
     if not is_multiple_of_two:
-        print("The CAN data is not a multiple of two '%s'." % args.data, file=sys.stderr)
-        return
+        raise ValueError("The CAN data is not a multiple of two '%s'." % args.data)
 
     data_byte_length = data_length // 2
     if data_byte_length > CAN_DATA_BYTE_LENGTH:
-        print("The CAN data length is too large (%d > %d)" % (
-            data_byte_length, CAN_DATA_BYTE_LENGTH), file=sys.stderr)
-        return
+        raise ValueError("The CAN data length is too large (%d > %d)" % (
+            data_byte_length, CAN_DATA_BYTE_LENGTH))
 
     try:
         # Check hexadecimal
         int(data, 16)
-
-        # The signal addresses are indicated in DBC file for CAN message of 64 bits so we add
-        # missing bits at the beginning of the string.
-        # data = '00' * (CAN_DATA_BYTE_LENGTH - data_byte_length) + data
     except ValueError:
-        print("Invalid data argument '%s'." % args.data, file=sys.stderr)
-        return
+        raise ValueError("Invalid data argument '%s'." % args.data)
 
     # Load file as JSON file
     try:
         dbc_json = json.loads(args.dbcfile.read())
     except ValueError:
-        print("Unable to load the DBC file '%s' as JSON." % args.dbcfile, file=sys.stderr)
-        return
+        raise ValueError("Unable to load the DBC file '%s' as JSON." % args.dbcfile)
 
     return {
         'can_id': can_id, 'can_data': data, 'dbc_json': dbc_json
@@ -74,7 +63,6 @@ def args_cleanup(args):
 
 def swap_bytes(data):
     # Inverse byte order for DBC 0xAABBCCDD to 0xDDCCBBAA
-    # FIXME prefill or postfill?
     data_swapped = ''
     for i in range(len(data), 0, -8):
         data_swapped += data[i - 8:i]
@@ -91,8 +79,7 @@ def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
     - is_json_output, print output in JSON or not
     """
     if 'messages' not in dbc_json:
-        print("Invalid DBC file (no messages entry).", file=sys.stderr)
-        return
+        raise ValueError("Invalid DBC file (no messages entry).")
 
     if is_json_output:
         # Initialize the structure to output JSON
@@ -105,8 +92,7 @@ def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
         else:
             print("Message %s (%d)" % (message['name'], can_id))
     except KeyError:
-        print("Message ID %d (0x%x) not found in JSON file." % (can_id, can_id), file=sys.stderr)
-        return
+        raise ValueError("Message ID %d (0x%x) not found in JSON file." % (can_id, can_id))
 
     # Intel (2 characters for a byte)
     can_data_binary_length_lsb = len(can_data) * 4
