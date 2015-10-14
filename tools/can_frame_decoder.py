@@ -72,11 +72,14 @@ def swap_bytes(data):
 def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
     """Decode a CAN frame.
 
-    Arguments:
-    - can_id, CAN ID as integer
-    - can_data, string of hexadecimal numbers
-    - dbc_json, DBC file parsed with JSON reader
-    - is_json_output, print output in JSON or not
+    Args:
+        can_id: int, CAN ID
+        can_data: str, hexadecimal numbers
+        dbc_json: file, DBC file parsed with JSON reader
+        is_json_output: bool, print output in JSON or not
+
+    Raises:
+        ValueError: raised when the data aren't in the expected format
     """
     if 'messages' not in dbc_json:
         raise ValueError("Invalid DBC file (no messages entry).")

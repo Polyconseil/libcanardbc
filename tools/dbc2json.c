@@ -13,6 +13,7 @@ static int total_signal_bit_length = 0;
 static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list)
 {
     int signal_count = 0;
+    gboolean message_has_multiplexor = FALSE;
 
     if (signal_list == NULL)
         return 0;
@@ -71,12 +72,32 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
             json_builder_end_object(builder);
         }
 
+        switch (signal->mux_type) {
+        case m_multiplexor:
+            json_builder_set_member_name(builder, "multiplexor");
+            json_builder_add_boolean_value(builder, TRUE);
+            message_has_multiplexor = TRUE;
+            break;
+        case m_multiplexed:
+            json_builder_set_member_name(builder, "multiplexed");
+            json_builder_add_int_value(builder, signal->mux_value);
+            break;
+        default:
+            /* m_signal */
+            break;
+        }
         json_builder_end_object(builder);
 
         signal_count++;
         signal_list = signal_list->next;
     }
     json_builder_end_object(builder);
+
+    /* Message level */
+    if (message_has_multiplexor) {
+        json_builder_set_member_name(builder, "has_multiplexor");
+        json_builder_add_boolean_value(builder, TRUE);
+    }
 
     return signal_count;
 }

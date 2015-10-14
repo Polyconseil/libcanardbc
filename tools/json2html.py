@@ -29,8 +29,17 @@ def print_html_signals(signals):
     # Content
     signals = sorted(signals.items(), key=lambda t: int(t[1]['bit_start']))
     for signal_name, signal in signals:
+        multiplexing = ''
+
+        if signal.get('multiplexor', False):
+            multiplexing = " (multiplexor)"
+
+        multiplexed = signal.get('multiplexed')
+        if multiplexed is not None:
+            multiplexing = " (multiplexed by %X)" % (multiplexed)
+
         print("<tr>")
-        print("<td>{name}</td>".format(name=signal_name))
+        print("<td>{name}{multiplexing}</td>".format(name=signal_name, multiplexing=multiplexing))
         if 'enums' in signal:
             enums = u"<br>".join(u"%s: %s" % (value, name) for value, name in sorted(signal['enums'].items()))
         else:
@@ -46,9 +55,9 @@ def print_html_signals(signals):
 def print_html(args):
     # Load file as JSON file
     try:
-        dbc_json = json.loads(args.dbcfile.read())
+        dbc_json = json.loads(args.dbcjsonfile.read())
     except ValueError:
-        print("Unable to load the DBC file '%s' as JSON." % args.dbcfile)
+        print("Unable to load the DBC file '%s' as JSON." % args.dbcjsonfile)
         return
 
     print("<!doctype html>")
@@ -72,8 +81,9 @@ def print_html(args):
         # Message header
         message = dbc_json['messages'][message_id]
         print("<h3>%s (%s)</h3>" % (message['name'], hex(int(message_id))))
-        print("<p>Length: %s - Transmitter: %s - Decimal: %s </p>" % (
-            message['length'], message['sender'], message_id))
+        print("<p>Length: %s - Transmitter: %s - Decimal: %s %s</p>" % (
+            message['length'], message['sender'], message_id,
+            "- This message contains a multiplexor" if message.get('has_multiplexor') else ''))
 
         for attribute_name, attribute_value in message.get('attributes', {}).items():
             # Display the value of the attribute or its enum when available
@@ -95,7 +105,7 @@ def print_html(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Display JSON file of a DBC in HTML.")
     parser.add_argument(
-        'dbcfile', type=argparse.FileType('r'),
+        'dbcjsonfile', type=argparse.FileType('r'),
         help="DBC in JSON format to use for decoding")
     args = parser.parse_args()
     print_html(args)
