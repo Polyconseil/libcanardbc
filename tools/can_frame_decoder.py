@@ -98,13 +98,11 @@ def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
         raise ValueError("Message ID %d (0x%x) not found in JSON file." % (can_id, can_id))
 
     # Intel (2 characters for a byte)
-    can_data_binary_length_lsb = len(can_data) * 4
+    can_data_binary_length = len(can_data) * 4
 
     # Motorola requires prefilled data
-    can_data_binary_length_msb = len(can_data) * 4
-
     # 0n to fit in n characters width with 0 padding
-    can_data_binary_msb = format(eval('0x' + can_data), '0%db' % can_data_binary_length_msb)
+    can_data_binary_msb = format(eval('0x' + can_data), '0%db' % can_data_binary_length)
     # For Intel
     can_data_binary_lsb = swap_bytes(can_data_binary_msb)
 
@@ -126,10 +124,8 @@ def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
 
         if is_little_endian:
             can_data_binary = can_data_binary_lsb
-            can_data_binary_length = can_data_binary_length_lsb
         else:
             can_data_binary = can_data_binary_msb
-            can_data_binary_length = can_data_binary_length_msb
 
         if signal_bit_start >= can_data_binary_length:
             raise ValueError("Bit start %d of signal %s is too high" % (
