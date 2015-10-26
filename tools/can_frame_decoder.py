@@ -69,6 +69,48 @@ def swap_bytes(data):
     return data_swapped
 
 
+def signal_decode(signal_name, signal_data,
+    can_data_binary_msb, can_data_binary_lsb, can_data_binary_length):
+    signal = {
+        'name': signal_name,
+        'length': signal_data['length']
+    }
+    bit_start = signal_data['bit_start']
+    is_little_endian = int(signal_data['little_endian'])
+    signal['endianess'] = 'LSB' if is_little_endian else 'MSB'
+
+    if is_little_endian:
+        can_data_binary = can_data_binary_lsb
+    else:
+        can_data_binary = can_data_binary_msb
+
+    if bit_start >= can_data_binary_length:
+        raise ValueError("Bit start %d of signal %s is too high" % (
+            bit_start, signal_name))
+
+    if is_little_endian:
+        # In Intel format (little-endian), bit_start is the position of the
+        # Least Significant Bit so it needs to be byte swapped
+        signal['bit_end'] = can_data_binary_length - bit_start
+        signal['bit_start'] = signal['bit_end'] - signal['length']
+    else:
+        # Motorola. Weird thing of the DBC format
+        signal['bit_start'] = (bit_start // 8) * 8 + (7 - (bit_start % 8))
+        signal['bit_end'] = signal['bit_start'] + signal['length']
+
+    s_value = can_data_binary[signal['bit_start']:signal['bit_end']]
+
+    signal['factor'] = signal_data.get('factor', 1)
+    signal['offset'] = signal_data.get('offset', 0)
+    signal['value'] = int(s_value, 2) * signal['factor'] + signal['offset']
+    signal['unit'] = signal_data.get('unit', '')
+
+    return signal
+
+def signal_print(signal):
+    print("""Signal {name} - ({length}@{bit_start} {endianness})x{factor}+{offset} = {value} {unit}""".format(
+        **signal))
+
 def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
     """Decode a CAN frame.
 
@@ -119,56 +161,14 @@ def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
 
     signals = sorted(message['signals'].items(), key=lambda t: int(t[1]['bit_start']))
     for signal_name, signal_data in signals:
-        signal_bit_start = signal_data['bit_start']
-        is_little_endian = int(signal_data['little_endian'])
+        signal = signal_decode(
+            signal_name, signal_data, can_data_binary_msb, can_data_binary_lsb,
+            can_data_binary_length)
 
-        if is_little_endian:
-            can_data_binary = can_data_binary_lsb
-        else:
-            can_data_binary = can_data_binary_msb
-
-        if signal_bit_start >= can_data_binary_length:
-            raise ValueError("Bit start %d of signal %s is too high" % (
-                signal_bit_start, signal_name))
-
-        signal_length = signal_data['length']
-        if is_little_endian:
-            # In Intel format (little-endian), bit_start is the position of the
-            # Least Significant Bit so it needs to be byte swapped
-            signal_bit_end = can_data_binary_length - signal_bit_start
-            signal_bit_start = signal_bit_end - signal_length
-        else:
-            # Motorola. Weird thing of the DBC format
-            signal_bit_start = (signal_bit_start // 8) * 8 + (7 - (signal_bit_start % 8))
-            signal_bit_end = signal_bit_start + signal_length
-
-        s_value = can_data_binary[signal_bit_start:signal_bit_end]
-        # print("%s %d:%d => %d:%d = %s" % (
-        #     signal_name,
-        #     signal_data['bit_start'], signal_data['bit_start'] + signal_length,
-        #     signal_bit_start, signal_bit_end, hex(int(s_value, 2))))
-
-        signal_factor = signal_data.get('factor', 1)
-        signal_offset = signal_data.get('offset', 0)
-        value = int(s_value, 2) * signal_factor + signal_offset
-        unit = signal_data.get('unit', '')
         if is_json_output:
-            signal = {
-                'name': signal_name,
-                'bit_start': signal_bit_start,
-                'length': signal_length,
-                'factor': signal_factor,
-                'offset': signal_offset,
-                'endianness': 'LSB' if is_little_endian else 'MSB',
-                'value': value, 'unit': unit
-            }
             output['signals'].append(signal)
         else:
-            print("""Signal {name} - ({length}@{bit_start} {endianness})x{factor}+{offset} = {value} {unit}""".format(
-                name=signal_name, bit_start=signal_bit_start, length=signal_length,
-                factor=signal_factor, offset=signal_offset,
-                endianness="LSB" if is_little_endian else "MSB",
-                value=value, unit=unit))
+            signal_print(signal)
 
     if is_json_output:
         return output
