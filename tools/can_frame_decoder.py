@@ -107,9 +107,22 @@ def signal_decode(signal_name, signal_data,
 
     return signal
 
+
 def signal_print(signal):
     print("""Signal {name} - ({length}@{bit_start} {endianness})x{factor}+{offset} = {value} {unit}""".format(
         **signal))
+
+
+def message_get_multiplexed(signals, can_data_binary_msb, can_data_binary_lsb, can_data_binary_length):
+    multiplexed = None
+    for signal_name, signal_data in signals.items():
+        if signal_data.get('multiplexor', False):
+            signal = signal_decode(signal_name, signal_data, can_data_binary_msb, can_data_binary_lsb,
+                can_data_binary_length)
+            multiplexed = signal['value']
+            break
+
+    return multiplexed
 
 def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
     """Decode a CAN frame.
@@ -159,16 +172,26 @@ def frame_decode(can_id, can_data, dbc_json, is_json_output=False):
         print("CAN data binary MSB: %s" % (can_data_binary_msb))
         print("CAN data binary LSB: %s" % (can_data_binary_lsb))
 
+    if message.get('has_multiplexor', False):
+        multiplexed = message_get_multiplexed(
+            message['signals'], can_data_binary_msb, can_data_binary_lsb,
+            can_data_binary_length)
+    else:
+        multiplexed = None
+
     signals = sorted(message['signals'].items(), key=lambda t: int(t[1]['bit_start']))
     for signal_name, signal_data in signals:
-        signal = signal_decode(
-            signal_name, signal_data, can_data_binary_msb, can_data_binary_lsb,
-            can_data_binary_length)
+        # Decode signal only when no multiplexor or the signal is associated to the
+        # current mode or the signal is not multiplexed
+        if multiplexed is None or multiplexed == signal_data.get('multiplexed', multiplexed):
+            signal = signal_decode(
+                signal_name, signal_data, can_data_binary_msb, can_data_binary_lsb,
+                can_data_binary_length)
 
-        if is_json_output:
-            output['signals'].append(signal)
-        else:
-            signal_print(signal)
+            if is_json_output:
+                output['signals'].append(signal)
+            else:
+                signal_print(signal)
 
     if is_json_output:
         return output
