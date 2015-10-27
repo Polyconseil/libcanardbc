@@ -77,7 +77,7 @@ def signal_decode(signal_name, signal_data,
     }
     bit_start = signal_data['bit_start']
     is_little_endian = int(signal_data['little_endian'])
-    signal['endianess'] = 'LSB' if is_little_endian else 'MSB'
+    signal['endianness'] = 'LSB' if is_little_endian else 'MSB'
 
     if is_little_endian:
         can_data_binary = can_data_binary_lsb
