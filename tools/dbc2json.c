@@ -79,7 +79,7 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
             message_has_multiplexor = TRUE;
             break;
         case m_multiplexed:
-            json_builder_set_member_name(builder, "multiplexed");
+            json_builder_set_member_name(builder, "multiplexing");
             json_builder_add_int_value(builder, signal->mux_value);
             break;
         default:
