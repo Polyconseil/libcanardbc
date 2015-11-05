@@ -1,5 +1,5 @@
-m4_define([libcanardbc_version_major], [0])
-m4_define([libcanardbc_version_minor], [1])
+m4_define([libcanardbc_version_major], [1])
+m4_define([libcanardbc_version_minor], [0])
 m4_define([libcanardbc_version_micro], [0])
 
 m4_define([libcanardbc_version],
