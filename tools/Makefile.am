@@ -1,4 +1,5 @@
-noinst_PROGRAMS = dbc2json
+bin_PROGRAMS = dbc2json
+dist_bin_SCRIPTS = dbcjson2html.py dbc2html.sh
 
 AM_CFLAGS = \
 	-DLIBEXECDIR=\""$(libexecdir)"\" \
