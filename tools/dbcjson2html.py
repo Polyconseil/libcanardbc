@@ -15,7 +15,7 @@ import datetime
 import json
 
 
-def print_html_signals(signals):
+def print_html_signals(signals, has_multiplexor):
     print("<table class='table table-border table-hover'>")
 
     # Header
@@ -27,9 +27,10 @@ def print_html_signals(signals):
     print("</tr>")
 
     # Content
-    signals = sorted(signals.items(), key=lambda t: int(t[1]['bit_start']))
+    # Sort by multiplexing (if any) and bit start
+    signals = sorted(signals.items(),
+        key=lambda t: int(t[1].get('multiplexing', 0) * 10000 + int(t[1]['bit_start'])))
     for signal_name, signal in signals:
-
         multiplexing = " (multiplexor)" if signal.get('multiplexor') else ''
         if not multiplexing:
             multiplexing = " (mode 0x%X)" % signal.get('multiplexing') if signal.get('multiplexing') else ''
@@ -90,7 +91,7 @@ def print_html(args):
 
         # Signals
         if 'signals' in message:
-            print_html_signals(message['signals'])
+            print_html_signals(message['signals'], message.get('has_multiplexor', False))
 
     print("</div>")
     print("</div>")
