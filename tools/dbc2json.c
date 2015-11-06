@@ -290,7 +290,7 @@ int main(int argc, char** argv) {
     int message_count;
 
     g_print("If your input file is not an UTF-8 file, you can do:\n");
-    g_print("  iconv -f ISO-8859-2 -t UTF-8 < foo.dbc > foo.dbc.utf8\n\n");
+    g_print("  iconv -f ISO-8859-1 -t UTF-8 < foo.dbc > foo.dbc.utf8\n\n");
 
     if (argc < 3) {
        g_print("Usage: %s <source.dbc> <dest.json>\n", argv[0]);
