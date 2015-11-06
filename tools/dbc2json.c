@@ -7,13 +7,14 @@
 #include <candbc-model.h>
 #include <candbc-reader.h>
 
+static int message_with_multiplexing_count = 0;
 static int total_signal_count = 0;
 static int total_signal_bit_length = 0;
 
-static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list)
+static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list,
+    GHashTable *multiplexing_table)
 {
     int signal_count = 0;
-    gboolean message_has_multiplexor = FALSE;
 
     if (signal_list == NULL)
         return 0;
@@ -76,11 +77,11 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
         case m_multiplexor:
             json_builder_set_member_name(builder, "multiplexor");
             json_builder_add_boolean_value(builder, TRUE);
-            message_has_multiplexor = TRUE;
             break;
         case m_multiplexed:
             json_builder_set_member_name(builder, "multiplexing");
             json_builder_add_int_value(builder, signal->mux_value);
+            g_hash_table_add(multiplexing_table, &(signal->mux_value));
             break;
         default:
             /* m_signal */
@@ -92,12 +93,6 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
         signal_list = signal_list->next;
     }
     json_builder_end_object(builder);
-
-    /* Message level */
-    if (message_has_multiplexor) {
-        json_builder_set_member_name(builder, "has_multiplexor");
-        json_builder_add_boolean_value(builder, TRUE);
-    }
 
     return signal_count;
 }
@@ -204,7 +199,9 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
     json_builder_begin_object(builder);
 
     while (message_list != NULL) {
+        int multiplexing_count;
         message_t *message = message_list->message;
+        GHashTable *multiplexing_table = g_hash_table_new(g_int_hash, g_int_equal);
 
         /* Keys are the message IDs */
         char *s_id = g_strdup_printf("%lu", message->id);
@@ -222,9 +219,22 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
         json_builder_add_int_value(builder, message->len);
 
         extract_message_attributes(builder, message->attribute_list);
-        total_signal_count += extract_message_signals(builder, message->signal_list);
+        total_signal_count += extract_message_signals(builder, message->signal_list,
+            multiplexing_table);
 
         json_builder_end_object(builder);
+
+        multiplexing_count = g_hash_table_size(multiplexing_table);
+        if (multiplexing_count) {
+            json_builder_set_member_name(builder, "has_multiplexor");
+            json_builder_add_boolean_value(builder, TRUE);
+
+            /* Each mode provides a distinct message */
+            message_with_multiplexing_count += multiplexing_count;
+        } else {
+            message_with_multiplexing_count++;
+        }
+        g_hash_table_destroy(multiplexing_table);
 
         message_count++;
         message_list = message_list->next;
@@ -294,6 +304,7 @@ int main(int argc, char** argv) {
     g_print("Done.\n\n");
 
     g_print("Number of messages: %d\n", message_count);
+    g_print("Number of messages with multiplexing: %d\n", message_with_multiplexing_count);
     g_print("Number of signals: %d\n", total_signal_count);
     g_print("Total length of signal bits: %d\n", total_signal_bit_length);
 
