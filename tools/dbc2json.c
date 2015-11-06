@@ -222,8 +222,6 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
         total_signal_count += extract_message_signals(builder, message->signal_list,
             multiplexing_table);
 
-        json_builder_end_object(builder);
-
         multiplexing_count = g_hash_table_size(multiplexing_table);
         if (multiplexing_count) {
             json_builder_set_member_name(builder, "has_multiplexor");
@@ -234,6 +232,7 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
         } else {
             message_with_multiplexing_count++;
         }
+        json_builder_end_object(builder);
         g_hash_table_destroy(multiplexing_table);
 
         message_count++;
