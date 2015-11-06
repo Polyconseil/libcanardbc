@@ -29,14 +29,10 @@ def print_html_signals(signals):
     # Content
     signals = sorted(signals.items(), key=lambda t: int(t[1]['bit_start']))
     for signal_name, signal in signals:
-        multiplexing = ''
 
-        if signal.get('multiplexor', False):
-            multiplexing = " (multiplexor)"
-
-        multiplexed = signal.get('multiplexed')
-        if multiplexed is not None:
-            multiplexing = " (multiplexed by %X)" % (multiplexed)
+        multiplexing = " (multiplexor)" if signal.get('multiplexor') else ''
+        if not multiplexing:
+            multiplexing = " (mode 0x%X)" % signal.get('multiplexing') if signal.get('multiplexing') else ''
 
         print("<tr>")
         print("<td>{name}{multiplexing}</td>".format(name=signal_name, multiplexing=multiplexing))
