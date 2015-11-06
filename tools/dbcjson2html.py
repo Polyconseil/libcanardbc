@@ -33,7 +33,7 @@ def print_html_signals(signals, has_multiplexor):
     for signal_name, signal in signals:
         multiplexing = " (multiplexor)" if signal.get('multiplexor') else ''
         if not multiplexing:
-            multiplexing = " (mode 0x%X)" % signal.get('multiplexing') if signal.get('multiplexing') else ''
+            multiplexing = " (mode 0x%X)" % signal.get('multiplexing') if signal.get('multiplexing') is not None else ''
 
         print("<tr>")
         print("<td>{name}{multiplexing}</td>".format(name=signal_name, multiplexing=multiplexing))
