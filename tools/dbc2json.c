@@ -7,17 +7,20 @@
 #include <candbc-model.h>
 #include <candbc-reader.h>
 
-static int message_with_multiplexing_count = 0;
-static int total_signal_count = 0;
-static int total_signal_bit_length = 0;
+typedef struct {
+    int messages;
+    int normal_messages;
+    int multiplexed_messages;
+    int multiplexed_message_combinations;
+    int signals;
+    int signals_bit_length;
+} stats_t;
 
-static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list,
-    GHashTable *multiplexing_table)
+static void extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list,
+    GHashTable *multiplexing_table, stats_t *stats)
 {
-    int signal_count = 0;
-
     if (signal_list == NULL)
-        return 0;
+        return;
 
     json_builder_set_member_name(builder, "signals");
     json_builder_begin_object(builder);
@@ -34,7 +37,7 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
 
         json_builder_set_member_name(builder, "length");
         json_builder_add_int_value(builder, signal->bit_len);
-        total_signal_bit_length += signal->bit_len;
+        stats->signals_bit_length += signal->bit_len;
 
         json_builder_set_member_name(builder, "little_endian");
         json_builder_add_int_value(builder, signal->endianness);
@@ -89,12 +92,10 @@ static int extract_message_signals(JsonBuilder *builder, signal_list_t* signal_l
         }
         json_builder_end_object(builder);
 
-        signal_count++;
+        stats->signals++;
         signal_list = signal_list->next;
     }
     json_builder_end_object(builder);
-
-    return signal_count;
 }
 
 static char* convert_attribute_value_to_string(attribute_value_t *attribute_value)
@@ -190,10 +191,8 @@ static int extract_message_attributes(JsonBuilder *builder, attribute_list_t* at
     return 0;
 }
 
-static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
+static void extract_messages(JsonBuilder *builder, message_list_t *message_list, stats_t *stats)
 {
-    int message_count = 0;
-
     /* Extract message list */
     json_builder_set_member_name(builder, "messages");
     json_builder_begin_object(builder);
@@ -219,8 +218,8 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
         json_builder_add_int_value(builder, message->len);
 
         extract_message_attributes(builder, message->attribute_list);
-        total_signal_count += extract_message_signals(builder, message->signal_list,
-            multiplexing_table);
+        extract_message_signals(builder, message->signal_list,
+            multiplexing_table, stats);
 
         multiplexing_count = g_hash_table_size(multiplexing_table);
         if (multiplexing_count) {
@@ -228,26 +227,24 @@ static int extract_messages(JsonBuilder *builder, message_list_t *message_list)
             json_builder_add_boolean_value(builder, TRUE);
 
             /* Each mode provides a distinct message */
-            message_with_multiplexing_count += multiplexing_count;
+            stats->multiplexed_messages++;
+            stats->multiplexed_message_combinations += multiplexing_count;
         } else {
-            message_with_multiplexing_count++;
+            stats->normal_messages++;
         }
         json_builder_end_object(builder);
         g_hash_table_destroy(multiplexing_table);
 
-        message_count++;
+        stats->messages++;
         message_list = message_list->next;
     }
 
     json_builder_end_object(builder);
-
-    return message_count;
 }
 
 
-static int write_dbc_to_file(dbc_t *dbc, const char *filename)
+static void write_dbc_to_file(dbc_t *dbc, const char *filename, stats_t *stats)
 {
-    int message_count;
     JsonBuilder *builder = json_builder_new();
     GError *error = NULL;
 
@@ -262,7 +259,7 @@ static int write_dbc_to_file(dbc_t *dbc, const char *filename)
 
     /* Extract attribute definitions of messages ONLY */
     extract_attribute_definitions(builder, dbc->attribute_definition_list);
-    message_count = extract_messages(builder, dbc->message_list);
+    extract_messages(builder, dbc->message_list, stats);
 
     json_builder_end_object(builder);
 
@@ -281,13 +278,19 @@ static int write_dbc_to_file(dbc_t *dbc, const char *filename)
     json_node_free(root);
     g_object_unref(generator);
     g_object_unref(builder);
+}
 
-    return message_count;
+static void display_stats(stats_t *stats) {
+    g_print("Number of messages: %d (%d normal and %d multiplexed)\n",
+        stats->messages, stats->normal_messages, stats->multiplexed_messages);
+    g_print("Number of combinations of multiplexed messages: %d\n", stats->multiplexed_message_combinations);
+    g_print("Number of signals: %d\n", stats->signals);
+    g_print("Total length of signal bits: %d\n", stats->signals_bit_length);
 }
 
 int main(int argc, char** argv) {
     dbc_t *dbc;
-    int message_count;
+    stats_t stats = {0};
 
     g_print("If your input file is not an UTF-8 file, you can do:\n");
     g_print("  iconv -f ISO-8859-1 -t UTF-8 < foo.dbc > foo.dbc.utf8\n\n");
@@ -296,16 +299,13 @@ int main(int argc, char** argv) {
        g_print("Usage: %s <source.dbc> <dest.json>\n", argv[0]);
        return EXIT_FAILURE;
     }
+
     g_print("Read input file %s\n", argv[1]);
     dbc = dbc_read_file(argv[1]);
     g_print("Write JSON output to %s\n", argv[2]);
-    message_count = write_dbc_to_file(dbc, argv[2]);
+    write_dbc_to_file(dbc, argv[2], &stats);
     g_print("Done.\n\n");
 
-    g_print("Number of messages: %d\n", message_count);
-    g_print("Number of messages with multiplexing: %d\n", message_with_multiplexing_count);
-    g_print("Number of signals: %d\n", total_signal_count);
-    g_print("Total length of signal bits: %d\n", total_signal_bit_length);
-
+    display_stats(&stats);
     return 0;
 }
