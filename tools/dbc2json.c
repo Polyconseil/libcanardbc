@@ -42,6 +42,9 @@ static void extract_message_signals(JsonBuilder *builder, signal_list_t* signal_
         json_builder_set_member_name(builder, "little_endian");
         json_builder_add_int_value(builder, signal->endianness);
 
+        json_builder_set_member_name(builder, "signed");
+        json_builder_add_int_value(builder, signal->signedness);
+
         json_builder_set_member_name(builder, "factor");
         json_builder_add_double_value(builder, signal->scale);
 

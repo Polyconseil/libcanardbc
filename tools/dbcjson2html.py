@@ -20,8 +20,7 @@ def print_html_signals(signals, has_multiplexor):
 
     # Header
     print("<tr>")
-    headers = ('Signal name', 'Start bit', 'Length', 'Endianness', 'Factor',
-               'Offset', 'Range', 'Enums')
+    headers = ('Signal name', 'Start bit', 'Length', 'Endianness', 'Signedness', 'Factor', 'Offset', 'Range', 'Enums')
     for header in headers:
         print("<th>%s</th>" % header)
     print("</tr>")
@@ -42,9 +41,10 @@ def print_html_signals(signals, has_multiplexor):
         else:
             enums = ''
 
-        print(u"<td>%s</td>" * 7 % (
+        print(u"<td>%s</td>" * 8 % (
             signal["bit_start"], signal["length"], "LSB" if signal["little_endian"] else "MSB",
-            signal["factor"], signal["offset"], "%s to %s" % (signal["min"], signal["max"]), enums))
+            "signed" if signal["signed"] else "unsigned", signal["factor"], signal["offset"],
+            "%s to %s" % (signal["min"], signal["max"]), enums))
         print("</tr>")
     print("</table>")
 
