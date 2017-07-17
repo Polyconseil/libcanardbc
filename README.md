@@ -19,12 +19,14 @@ on purpose by Andreas Heitmann and so this fork inherits of the license.
 Installation
 ------------
 
-You will only to install:
+You will only need to install:
 - automake
 - autoconf
 - libtool
 - flex
 - bison
+- json-glib-1.0 (on Debian/Ubuntu: libjson-glib-dev; on other OSes probably a
+similar name)
 
 and a C compiler (gcc or clang) to compile the library.
 
