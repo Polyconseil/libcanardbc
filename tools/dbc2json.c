@@ -45,6 +45,15 @@ static void extract_message_signals(JsonBuilder *builder, signal_list_t* signal_
         json_builder_set_member_name(builder, "signed");
         json_builder_add_int_value(builder, signal->signedness);
 
+        json_builder_set_member_name(builder, "value_type");
+        if (signal->signal_val_type == svt_double) {
+            json_builder_add_string_value(builder, "double");
+        } else if (signal->signal_val_type == svt_float) {
+            json_builder_add_string_value(builder, "float");
+        } else {
+            json_builder_add_string_value(builder, "integer");
+        }
+
         json_builder_set_member_name(builder, "factor");
         json_builder_add_double_value(builder, signal->scale);
 
