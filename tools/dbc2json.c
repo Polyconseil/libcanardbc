@@ -16,6 +16,58 @@ typedef struct {
     int signals_bit_length;
 } stats_t;
 
+static char* convert_attribute_value_to_string(attribute_value_t *attribute_value)
+{
+    char *s_value;
+
+    value_type_t value_type = attribute_value->value_type;
+    value_union_t value = attribute_value->value;
+
+    switch (value_type) {
+      case vt_integer:
+        s_value = g_strdup_printf("%ld", value.int_val);
+        break;
+      case vt_float:
+        s_value = g_strdup_printf("%lg", value.double_val);
+        break;
+      case vt_string:
+        s_value = g_strdup_printf("%s", value.string_val);
+        break;
+      case vt_enum:
+        s_value = g_strdup_printf("%s", value.enum_val);
+        break;
+      case vt_hex:
+        s_value = g_strdup_printf("%lu", value.hex_val);
+        break;
+      default:
+        s_value = NULL;
+    }
+
+    return s_value;
+}
+
+static int extract_message_attributes(JsonBuilder *builder, attribute_list_t* attribute_list)
+{
+    if (attribute_list == NULL)
+        return 0;
+
+    json_builder_set_member_name(builder, "attributes");
+    json_builder_begin_object(builder);
+
+    while (attribute_list != NULL) {
+        attribute_t *attribute = attribute_list->attribute;
+        char *s_value = convert_attribute_value_to_string(attribute->value);
+        json_builder_set_member_name(builder, attribute->name);
+        json_builder_add_string_value(builder, s_value);
+        g_free(s_value);
+
+        attribute_list = attribute_list->next;
+    }
+    json_builder_end_object(builder);
+
+    return 0;
+}
+
 static void extract_message_signals(JsonBuilder *builder, signal_list_t* signal_list,
     GHashTable *multiplexing_table, stats_t *stats)
 {
@@ -71,6 +123,10 @@ static void extract_message_signals(JsonBuilder *builder, signal_list_t* signal_
             json_builder_add_string_value(builder, signal->unit);
         }
 
+        if(signal->attribute_list) {
+            extract_message_attributes(builder, signal->attribute_list);
+        }
+
         if (signal->val_map != NULL) {
             val_map_t *val_map = signal->val_map;
 
@@ -110,36 +166,6 @@ static void extract_message_signals(JsonBuilder *builder, signal_list_t* signal_
     json_builder_end_object(builder);
 }
 
-static char* convert_attribute_value_to_string(attribute_value_t *attribute_value)
-{
-    char *s_value;
-
-    value_type_t value_type = attribute_value->value_type;
-    value_union_t value = attribute_value->value;
-
-    switch (value_type) {
-      case vt_integer:
-        s_value = g_strdup_printf("%ld", value.int_val);
-        break;
-      case vt_float:
-        s_value = g_strdup_printf("%lg", value.double_val);
-        break;
-      case vt_string:
-        s_value = g_strdup_printf("%s", value.string_val);
-        break;
-      case vt_enum:
-        s_value = g_strdup_printf("%s", value.enum_val);
-        break;
-      case vt_hex:
-        s_value = g_strdup_printf("%lu", value.hex_val);
-        break;
-      default:
-        s_value = NULL;
-    }
-
-    return s_value;
-}
-
 static int extract_attribute_definitions(JsonBuilder *builder, attribute_definition_list_t* attribute_definition_list)
 {
     if (attribute_definition_list == NULL)
@@ -175,28 +201,6 @@ static int extract_attribute_definitions(JsonBuilder *builder, attribute_definit
             json_builder_end_object(builder);
         }
         attribute_definition_list = attribute_definition_list->next;
-    }
-    json_builder_end_object(builder);
-
-    return 0;
-}
-
-static int extract_message_attributes(JsonBuilder *builder, attribute_list_t* attribute_list)
-{
-    if (attribute_list == NULL)
-        return 0;
-
-    json_builder_set_member_name(builder, "attributes");
-    json_builder_begin_object(builder);
-
-    while (attribute_list != NULL) {
-        attribute_t *attribute = attribute_list->attribute;
-        char *s_value = convert_attribute_value_to_string(attribute->value);
-        json_builder_set_member_name(builder, attribute->name);
-        json_builder_add_string_value(builder, s_value);
-        g_free(s_value);
-
-        attribute_list = attribute_list->next;
     }
     json_builder_end_object(builder);
 
