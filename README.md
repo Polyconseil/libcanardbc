@@ -43,6 +43,9 @@ The directory `tools` contains several tools related to libcanardbc:
   your needs. This program is linked to libcanardbc so it is licensed under
   GPLv3.
 
+- **json2dbc.py** converts a JSON file to a DBC file. It is usually easier to
+  write a JSON file by hand than a DBC one.
+
 - **json2html** renders a JSON file (DBC) to an HTML page. This program is
   distributed under BSD 3-Clause license.
 
@@ -56,4 +59,53 @@ The syntax of signals in DBC file is:
 
 ```
 <object> <name> : <start bit>|<length>@<endiannes ex. 0 for Motorola, 1 for Intel><signedness ex. + (unsigned) or - (signed)> (<factor>,<offset>) <range, ex. 0|360> "<unit>" <nodes>
+```
+
+JSON format
+-----------
+
+You can see an example of a valid JSON file [here](https://github.com/Polyconseil/caneton/blob/master/tests/dbc.json). Below is the description of the schema it uses:
+
+```
+{
+    "filename": "<filename>.dbc (optional)",
+    "version": "<dbc_version> (optional)",
+    "attribute_definitions": {
+        "<attribute_name>": {
+            "0": "<enum_value_0>",
+            "<n>": "<enum_value_<n>>"
+        }
+    }
+    "messages": {
+        "<can_id>": {
+            "name": "<message_name>",
+            "sender": "<sending_node>",
+            "length": <message_length_in_bytes>,
+            "attributes": {
+                "<attribute_name_1>": "<attribute_value_1>",
+                "<attribute_name_<n>>": "<attribute_value_<n>>"
+            }
+            "signals": {
+                "signal_1": {
+                    "bit_start": <signal_data_offset_in_message>,
+                    "length": <signal_data_length_in_bits>,
+                    "little_endian": <0|1>,
+                    "signed": <0|1>,
+                    "value_type": "<integer|float|double>",
+                    "factor": <factor_applied_to_signal_numerical_value>,
+                    "offset": <offset_applied_to_signal_numerical_value>,
+                    "min": <min_applied_to_signal_numerical_value>,
+                    "max": <max_applied_to_signal_numerical_value>,
+                    "unit": "<signal_data_unit (optional)>",
+                    "multiplexing": <multiplexer_id (optional)>
+                    "enums (optional)" : {
+                        "<enum_0_value>": "<enum_0_name>",
+                        "<enum_<n>_value>": "<enum_<n>_name>"
+                    }
+                },
+                "
+            }
+        }
+    }
+}
 ```
