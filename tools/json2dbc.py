@@ -43,6 +43,8 @@ class Signal:
     offset: float = 0.0
     min: float = 0.0
     max: float = 0.0
+    is_multiplexor: bool = False
+    multiplexor_id: typing.Optional[int] = None
     unit: str = ""
     values: typing.List[SignalValue] = dataclasses.field(default_factory=list)
     receiving_nodes: typing.List[str] = dataclasses.field(default_factory=list)
@@ -61,6 +63,8 @@ class Signal:
             value['offset'],
             value['min'],
             value['max'],
+            value.get('multiplexor', False),
+            value.get('multiplexing'),
             value.get('unit', ""),
             values,
         )
@@ -69,7 +73,12 @@ class Signal:
         little_endian = 1 if self.little_endian else 0
         signed = '-' if self.signed else '+'
         receiving_nodes = ','.join(self.receiving_nodes) if self.receiving_nodes else 'Vector__XXX'
-        return f' SG_ {self.name} : {self.bit_start}|{self.length}@{little_endian}{signed} '\
+        multiplexor_info = ''
+        if self.is_multiplexor:
+            multiplexor_info = ' M'
+        elif self.multiplexor_id is not None:
+            multiplexor_info = f' m{self.multiplexor_id}'
+        return f' SG_ {self.name}{multiplexor_info} : {self.bit_start}|{self.length}@{little_endian}{signed} '\
             f'({self.factor:g},{self.offset:g}) [{self.min:g}|{self.max:.64g}] "{self.unit}" {receiving_nodes}'
 
 

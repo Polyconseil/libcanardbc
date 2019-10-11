@@ -81,6 +81,7 @@ You can see an example of a valid JSON file [here](https://github.com/Polyconsei
             "name": "<message_name>",
             "sender": "<sending_node>",
             "length": <message_length_in_bytes>,
+            "has_multiplexor (optional) ": <true|false>,
             "attributes": {
                 "<attribute_name_1>": "<attribute_value_1>",
                 "<attribute_name_<n>>": "<attribute_value_<n>>"
@@ -97,7 +98,8 @@ You can see an example of a valid JSON file [here](https://github.com/Polyconsei
                     "min": <min_applied_to_signal_numerical_value>,
                     "max": <max_applied_to_signal_numerical_value>,
                     "unit": "<signal_data_unit (optional)>",
-                    "multiplexing": <multiplexer_id (optional)>
+                    "multiplexor (optional)": <does_the_signal_define_multiplex_ids>,
+                    "multiplexing (optional)": <multiplex_id_in_which_the_signal_exists>,
                     "enums (optional)" : {
                         "<enum_0_value>": "<enum_0_name>",
                         "<enum_<n>_value>": "<enum_<n>_name>"
