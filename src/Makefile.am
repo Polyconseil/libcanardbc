@@ -11,6 +11,9 @@ AM_YFLAGS = -d
 
 AM_CPPFLAGS = -I{srcdir}
 
+# '-no-undefined' should be specified when compile using Cygwin or Mingw
+AM_LDFLAGS = -no-undefined
+
 ## Enable debugging of linker script parser
 YYDEBUG = -DYYDEBUG=1
 
